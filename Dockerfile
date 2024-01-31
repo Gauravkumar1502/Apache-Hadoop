@@ -76,4 +76,4 @@ COPY start-hadoop.sh /start-hadoop.sh
 EXPOSE 9870 8088 9000
 
 # docker build -t hadoop-pseudo-distributed .
-# docker run -it --name hadoop-pseudo-distributed hadoop-pseudo-distributed -p 9870:9870 -p 8088:8088 -p 9000:9000
+# docker run -it --name hadoop-pseudo-distributed -p 9870:9870 -p 8088:8088 -p 9000:9000 hadoop-pseudo-distributed  
