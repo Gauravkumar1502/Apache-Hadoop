@@ -1,30 +1,52 @@
 # Use Ubuntu as the base image
 FROM ubuntu:latest
 
-# Update the system and install necessary packages such as wget, tar, ssh, rsync, openjdk-8-jdk, vim, pdsh
+# # Update the system and install necessary packages such as wget, tar, ssh, rsync, openjdk-8-jdk, vim, pdsh
+# RUN apt-get update && apt-get install -y \
+#     wget \
+#     tar \
+#     ssh \
+#     rsync \
+#     openjdk-8-jdk \
+#     vim \
+#     pdsh \
+#     net-tools
+
+# # Download hadoop-3.3.6.tar.gz and extract it to /usr/local/hadoop
+# RUN wget https://downloads.apache.org/hadoop/common/hadoop-3.3.6/hadoop-3.3.6.tar.gz && \
+#     tar -xzf hadoop-3.3.6.tar.gz -C /usr/local/ && \
+#     mv /usr/local/hadoop-3.3.6 /usr/local/hadoop && \
+#     rm hadoop-3.3.6.tar.gz
+
+# # Configure SSH
+# RUN ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa && \
+#     cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys && \
+#     chmod 0600 ~/.ssh/authorized_keys
+
+# Merge the above commands into one RUN command
 RUN apt-get update && apt-get install -y \
     wget \
     tar \
     ssh \
     rsync \
     openjdk-8-jdk \
-    vim \
-    pdsh \
-    net-tools
+    pdsh
+    
+# Set JAVA_HOME
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
-# Download hadoop-3.3.6.tar.gz and extract it to /usr/local/hadoop
 RUN wget https://downloads.apache.org/hadoop/common/hadoop-3.3.6/hadoop-3.3.6.tar.gz && \
     tar -xzf hadoop-3.3.6.tar.gz -C /usr/local/ && \
     mv /usr/local/hadoop-3.3.6 /usr/local/hadoop && \
-    rm hadoop-3.3.6.tar.gz
-
-# Configure SSH
-RUN ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa && \
+    rm hadoop-3.3.6.tar.gz && \
+    ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa && \
     cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys && \
-    chmod 0600 ~/.ssh/authorized_keys
+    chmod 0600 ~/.ssh/authorized_keys && \
+    service ssh start && \
+    mkdir -p /usr/local/hadoop/logs
 
-# Set JAVA_HOME
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+# Format the namenode
+RUN /usr/local/hadoop/bin/hdfs namenode -format
 
 # Set HADOOP_HOME
 ENV HADOOP_HOME=/usr/local/hadoop
@@ -76,4 +98,7 @@ COPY start-hadoop.sh /start-hadoop.sh
 EXPOSE 9870 8088 9000
 
 # docker build -t hadoop-pseudo-distributed .
-# docker run -it --name hadoop-pseudo-distributed -p 9870:9870 -p 8088:8088 -p 9000:9000 hadoop-pseudo-distributed  
+# docker run -it --name hadoop-pseudo-distributed -p 9870:9870 -p 8088:8088 -p 9000:9000 hadoop-pseudo-distributed
+
+# Use docker inspect command to get the IP address of the container
+# docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' hadoop-pseudo-distributed  
